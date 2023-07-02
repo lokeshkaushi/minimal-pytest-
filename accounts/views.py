@@ -489,14 +489,25 @@ class Blog_delete(APIView):
             return Response("blog does not excite") 
 
 
+#Blog viewset with this API user can blog Search Category  their blogs
+@method_decorator(csrf_exempt, name='dispatch')
+class CategoryListView(APIView):
+    parser_classes = [FormParser, MultiPartParser]
+    def get(self, request):
+        sort_order = request.query_params.get('sort_order', 'latest')
+        if sort_order == 'latest':
+            queryset = Post.objects.order_by('-created_date')
+        elif sort_order == 'oldest':
+            queryset = Post.objects.order_by('created_date')
+        elif sort_order == 'popular':
+            queryset = Post.objects.annotate(num_likes=Count('liked_by')).order_by('-num_likes')
+        else:
+            return Response({'error': 'Invalid sort order'}, status=status.HTTP_400_BAD_REQUEST)
 
-#Blog viewset with this API user can blog Search Category  their blogs 
-class CategoryListView(generics.ListAPIView):
-    queryset = Blog.objects.all()
-    serializer_class = BlogSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['blog_name']
-    Search_fields = ['Category']
+        serializer = CategorySerializer(queryset, many=True)
+        return Response(serializer.data)
+
+
   
 
 
