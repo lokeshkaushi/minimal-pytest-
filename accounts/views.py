@@ -508,16 +508,13 @@ class CategoryListView(APIView):
         return Response(serializer.data)
 
 
-  
-
-
 @api_view(['GET'])
-def show(request,pk):
+def show(request):
       if request.method =='GET':
-        user = CustomUser.objects.filter(pk=pk)
+        print(request.user)
+        user = CustomUser.objects.filter(username=request.user)
         serializer = RegisterSerializer(user,many=True)
         return Response(serializer.data)
-
 
 @api_view(['GET'])
 def video(request,pk):
@@ -539,11 +536,12 @@ class Profile_data(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     def get(self, request,pk):
-        usr = Profile_Pic.objects.get(pk=pk)
+        usr = Profile_Pic.objects.get(user=pk)
         serializer = Profile_Pic_serializer(usr)
         return Response(serializer.data)
     
-    
+
+       
 class About_data(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
@@ -561,11 +559,11 @@ class social_data(APIView):
         serializer = Social_serializer(usr)
         return Response(serializer.data)
 
-class Post_data(generics.ListAPIView):
-    queryset = Post.objects.all()
-    serializer_class = User_Post_get_serializer
+class Post_data(APIView):
+    def get(self, request,pk):
+        user = Post.objects.get(user=pk)
+        serializer = User_Post_get_serializer(user)
+        return Response(serializer.data)  
 
-    def get_queryset(self):
-        user = self.kwargs['pk']
-        return Post.objects.filter(user=user)    
+    
 #https://github.com/CryceTruly/django-rest-api/tree/main/authentication
